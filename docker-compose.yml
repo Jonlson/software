@@ -1,0 +1,50 @@
+version: '3.9'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: paperless-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: paperless
+      MYSQL_USER: paperless
+      MYSQL_PASSWORD: paperless
+    volumes:
+      - paperless-db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    restart: always
+
+  paperless:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PNGX_TAG_VERSION: dev  # 可根据需要修改版本
+    container_name: paperless-ngx
+    depends_on:
+      - db
+    environment:
+      # 数据库配置
+      PAPERLESS_DB_HOST: db
+      PAPERLESS_DB_PORT: 3306
+      PAPERLESS_DB_USER: paperless
+      PAPERLESS_DB_PASSWORD: paperless
+      PAPERLESS_DB_NAME: paperless
+      # 可选：时区等
+      TZ: Asia/Shanghai
+    ports:
+      - "8000:8000"
+    volumes:
+      - paperless-data:/usr/src/paperless/data
+      - paperless-media:/usr/src/paperless/media
+      - paperless-consume:/usr/src/paperless/consume
+      - paperless-export:/usr/src/paperless/export
+    restart: always
+
+volumes:
+  paperless-db-data:
+  paperless-data:
+  paperless-media:
+  paperless-consume:
+  paperless-export:
